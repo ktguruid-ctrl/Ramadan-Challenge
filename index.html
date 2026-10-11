@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAMADAN CHALLENGE: Petualangan Sehari Berpuasa</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --turquoise: #00ADB5;
+            --teal: #008080;
+            --royal-blue: #1E3A8A;
+            --gold: #FFD700;
+            --coral: #FF7F50;
+            --lavender: #E6E6FA;
+            --cream: #FFFDD0;
+            --white: #FFFFFF;
+            --bg-dusk: linear-gradient(to bottom, #2B2E4A, #FF7F50);
+            --bg-morning: linear-gradient(to bottom, #87CEEB, #FFFDD0);
+            --bg-day: linear-gradient(to bottom, #4CA1AF, #C4E0E5);
+            --bg-night: linear-gradient(to bottom, #0F2027, #203A43, #2C5364);
+        }
+
+        * { box-sizing: border-box; user-select: none; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background-color: #111; font-family: 'Quicksand', sans-serif; overflow: hidden; }
+
+        /* 16:9 Game Container */
+        #game-container {
+            width: 100vw; height: 56.25vw; max-height: 100vh; max-width: 177.78vh;
+            position: relative; overflow: hidden; border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            background: var(--bg-dusk); transition: background 1s ease;
+        }
+
+        .slide {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; opacity: 0; transition: opacity 0.6s ease;
+            padding: 2%;
+        }
+        .slide.active { display: flex; opacity: 1; z-index: 10; }
+
+        h1, h2, h3 { font-family: 'Fredoka One', cursive; margin: 0; }
+        h1 { font-size: 4.5vw; color: var(--gold); text-shadow: 3px 3px 0 var(--royal-blue), 0 0 15px rgba(255, 215, 0, 0.6); }
+        h2 { font-size: 3vw; color: var(--white); text-shadow: 2px 2px 0 var(--teal); margin-bottom: 1vw; }
+        p { font-size: 1.5vw; color: var(--royal-blue); background: rgba(255, 255, 255, 0.85); padding: 1vw 2vw; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 80%; }
+
+        /* Buttons */
+        .btn {
+            background: linear-gradient(to bottom, var(--gold), #FFB700); color: var(--royal-blue);
+            border: 3px solid var(--white); border-radius: 50px;
+            padding: 1vw 2.5vw; font-size: 1.5vw; font-weight: 700; font-family: 'Fredoka One', cursive;
+            cursor: pointer; box-shadow: 0 6px 0 var(--coral), 0 10px 15px rgba(0,0,0,0.2);
+            transition: all 0.2s; margin: 0.5vw; text-transform: uppercase;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 0 var(--coral), 0 12px 20px rgba(0,0,0,0.3); }
+        .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--coral); }
+        .btn-primary { animation: pulse 2s infinite; background: linear-gradient(to bottom, var(--turquoise), var(--teal)); color: white; border-color: var(--gold); box-shadow: 0 6px 0 var(--royal-blue);}
+
+        /* Top Navigation Bar */
+        .top-bar { position: absolute; top: 2%; left: 2%; right: 2%; display: flex; justify-content: space-between; z-index: 20; pointer-events: none; }
+        .top-bar .btn { pointer-events: auto; padding: 0.5vw 1.5vw; font-size: 1.2vw; box-shadow: 0 4px 0 var(--coral); }
+        .stars-hud { background: rgba(255, 255, 255, 0.9); padding: 0.5vw 1.5vw; border-radius: 30px; font-size: 1.5vw; font-weight: 700; color: var(--royal-blue); border: 2px solid var(--gold); box-shadow: 0 4px 10px rgba(0,0,0,0.2); pointer-events: auto; }
+
+        /* Animations */
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        @keyframes sway { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
+
+        /* Decor */
+        .lumi { font-size: 5vw; animation: float 3s ease-in-out infinite; filter: drop-shadow(0 0 10px var(--gold)); }
+        .lantern { position: absolute; font-size: 4vw; animation: sway 4s ease-in-out infinite; transform-origin: top center; top: -1vw; }
+
+        /* Mini-Games Elements */
+        .grid-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.5vw; width: 90%; margin-top: 1vw; }
+        .card { background: var(--white); border: 3px solid var(--turquoise); border-radius: 15px; padding: 1.5vw; cursor: pointer; transition: 0.3s; width: 22%; font-weight: bold; color: var(--royal-blue); box-shadow: 0 5px 0 var(--turquoise); font-size: 1.2vw; display: flex; align-items: center; justify-content: center; flex-direction: column;}
+        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 0 var(--turquoise); }
+        .card.selected { background: var(--gold); border-color: var(--coral); box-shadow: 0 5px 0 var(--coral); color: white; }
+        .card.disabled { opacity: 0.5; pointer-events: none; }
+
+        /* Specific Game Layouts */
+        .portal { width: 25%; height: 10vw; border-radius: 20px; border: 4px dashed white; display: flex; align-items: center; justify-content: center; font-size: 1.5vw; font-weight: bold; color: white; cursor: pointer; transition: 0.3s; }
+        .portal:hover { transform: scale(1.05); }
+        .p-merah { background: rgba(255, 99, 71, 0.8); }
+        .p-hijau { background: rgba(60, 179, 113, 0.8); }
+        .p-biru { background: rgba(65, 105, 225, 0.8); }
+
+        .hidden-object-area { position: relative; width: 70%; height: 25vw; background: rgba(255, 255, 255, 0.2); border-radius: 20px; border: 3px solid white; margin-top: 2vw; }
+        .h-obj { position: absolute; font-size: 4vw; cursor: pointer; transition: 0.3s; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3)); }
+        .h-obj:hover { transform: scale(1.2); }
+        .h-obj.found { filter: drop-shadow(0 0 15px var(--gold)); pointer-events: none; opacity: 0.5; }
+
+        /* Map Checkpoints */
+        .map-path { position: relative; width: 80%; height: 10vw; margin-top: 3vw; border-bottom: 4px dashed var(--white); display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 1vw;}
+        .checkpoint { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: 0.3s; }
+        .checkpoint .icon { font-size: 4vw; background: var(--white); border-radius: 50%; width: 6vw; height: 6vw; display: flex; justify-content: center; align-items: center; border: 4px solid var(--teal); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .checkpoint span { color: white; font-weight: bold; font-size: 1.2vw; margin-top: 0.5vw; text-shadow: 1px 1px 2px black; }
+        .checkpoint.locked { filter: grayscale(100%); opacity: 0.6; pointer-events: none; }
+        .checkpoint:hover { transform: scale(1.1); }
+
+        /* Modal Feedback */
+        #modal-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 100; }
+        .modal-box { background: var(--cream); padding: 3vw; border-radius: 20px; border: 5px solid var(--gold); text-align: center; width: 50%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: pulse 0.5s ease-out; }
+        .modal-title { font-family: 'Fredoka One'; font-size: 2.5vw; color: var(--turquoise); margin-bottom: 1vw; }
+        .modal-text { font-size: 1.5vw; color: var(--royal-blue); margin-bottom: 2vw; }
+
+        /* Split Screen (Misi 7 & 8) */
+        .split-screen { display: flex; width: 95%; height: 30vw; gap: 2vw; margin-top: 1vw; }
+        .half { flex: 1; background: rgba(255,255,255,0.7); border-radius: 15px; padding: 1vw; border: 3px solid var(--turquoise); display: flex; flex-direction: column; align-items: center;}
+        
+        .badge-container { display: flex; justify-content: center; gap: 1vw; flex-wrap: wrap; margin-top: 2vw; }
+        .badge { width: 8vw; height: 8vw; background: var(--gold); border-radius: 50%; border: 4px solid var(--white); display: flex; justify-content: center; align-items: center; font-size: 3vw; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <!-- Top HUD (Hidden on Cover) -->
+    <div class="top-bar" id="top-bar" style="display:none;">
+        <div>
+            <button class="btn" onclick="nav('slide-3')">🗺️ Peta</button>
+        </div>
+        <div class="stars-hud">⭐ Bintang: <span id="star-count">0</span>/8</div>
+    </div>
+
+    <!-- SLIDE 1: COVER -->
+    <div id="slide-1" class="slide active">
+        <div class="lantern" style="left: 20%;">🏮</div>
+        <div class="lantern" style="right: 20%;">🏮</div>
+        <div class="lumi">🧞‍♂️</div>
+        <h3 style="color: var(--white); font-size: 2vw; text-shadow: 2px 2px 0 var(--teal);">GAME EDUKASI PAI</h3>
+        <h1>RAMADAN CHALLENGE</h1>
+        <h2>Petualangan Sehari Berpuasa</h2>
+        <p style="background: none; color: var(--gold); text-shadow: 1px 1px 2px black; font-weight: bold; border-radius: 0; box-shadow: none;">“Jelajahi Ramadan, Tebarkan Kebaikan, Raih Bintang Keberkahan!”</p>
+        <div style="margin-top: 2vw;">
+            <button class="btn btn-primary" onclick="nav('slide-2')">▶ MULAI PETUALANGAN</button>
+            <button class="btn" onclick="showModal('Cara Bermain', 'Ikuti alur waktu Ramadan di Peta. Klik gerbang misi yang terbuka, selesaikan tantangan dengan teliti, dan kumpulkan 8 Bintang Kebaikan!', 'success')">❔ CARA BERMAIN</button>
+        </div>
+        <div style="position: absolute; bottom: 2vw; display: flex; gap: 2vw; align-items:flex-end;">
+            <div style="font-size: 6vw;">👦</div>
+            <div style="font-size: 4vw; background:rgba(255,255,255,0.2); padding:1vw; border-radius:10px;">🍞 🥛 🌴</div>
+            <div style="font-size: 6vw;">👧</div>
+        </div>
+    </div>
+
+    <!-- SLIDE 2: TUTORIAL -->
+    <div id="slide-2" class="slide" style="background: var(--bg-morning);">
+        <h2>Latihan Bersama Lumi 🧞‍♂️</h2>
+        <p>"Halo, aku Lumi! Aku akan memandumu. Cara mainnya mudah: Klik kartu yang ada, lalu klik tempat tujuannya. Kumpulkan bintang dengan menjawab benar. Jika salah, jangan sedih, kita bisa coba lagi!"</p>
+        <div class="grid-container" style="width: 50%; margin-bottom: 2vw;">
+            <div class="card" id="tut-card" onclick="selectCard(this, 'tut')">🌴 Kurma</div>
+            <div class="portal p-hijau" style="width: 40%; height: 5vw;" onclick="receiveCard('tut')">Piring Berbuka</div>
+        </div>
+        <button class="btn btn-primary" onclick="nav('slide-3')">✅ AKU SIAP!</button>
+    </div>
+
+    <!-- SLIDE 3: PETA WAKTU -->
+    <div id="slide-3" class="slide" style="background: var(--bg-day);">
+        <h2>Peta Petualangan Waktu 🕰️</h2>
+        <p>Selesaikan misi di setiap waktu untuk melanjutkan perjalananmu!</p>
+        <div class="map-path">
+            <div class="checkpoint" id="cp-1" onclick="nav('slide-4')"><div class="icon">🌙</div><span>Sahur (Misi 1)</span></div>
+            <div class="checkpoint locked" id="cp-2" onclick="nav('slide-5')"><div class="icon">🌅</div><span>Pagi (Misi 2 & 3)</span></div>
+            <div class="checkpoint locked" id="cp-3" onclick="nav('slide-7')"><div class="icon">☀️</div><span>Siang (Misi 4)</span></div>
+            <div class="checkpoint locked" id="cp-4" onclick="nav('slide-8')"><div class="icon">🌇</div><span>Sore (Misi 5 & 6)</span></div>
+            <div class="checkpoint locked" id="cp-5" onclick="nav('slide-10')"><div class="icon">🌃</div><span>Malam (Misi 7 & 8)</span></div>
+        </div>
+        <button class="btn" style="margin-top: 3vw;" onclick="nav('slide-11')">🏆 Lihat Pencapaian Akhir</button>
+    </div>
+
+    <!-- SLIDE 4: MISI 1 (Klasifikasi Portal) -->
+    <div id="slide-4" class="slide" style="background: var(--bg-night);">
+        <h2>Misi 1: Selamatkan Puasa! 🛡️</h2>
+        <p>Klik kartu aktivitas di bawah, lalu klik Portal yang tepat!</p>
+        
+        <div style="display: flex; gap: 2vw; width: 80%; justify-content: center; margin-bottom: 1vw;">
+            <div class="portal p-merah" onclick="checkMisi1('merah')">Membatalkan Puasa</div>
+            <div class="portal p-hijau" onclick="checkMisi1('hijau')">TIDAK Batal</div>
+            <div class="portal p-biru" onclick="checkMisi1('biru')">Tanya Guru</div>
+        </div>
+
+        <div class="grid-container" id="m1-cards">
+            <div class="card" onclick="selectCardM1(this, 'merah')">Makan sengaja di siang hari</div>
+            <div class="card" onclick="selectCardM1(this, 'hijau')">Lupa makan/minum</div>
+            <div class="card" onclick="selectCardM1(this, 'merah')">Minum sengaja di siang hari</div>
+            <div class="card" onclick="selectCardM1(this, 'biru')">Ragu hukum berkumur saat puasa</div>
+        </div>
+    </div>
+
+    <!-- SLIDE 5: MISI 2 (Hidden Objects) -->
+    <div id="slide-5" class="slide" style="background: var(--bg-morning);">
+        <h2>Misi 2: Detektif Ramadan 🔍</h2>
+        <p>Temukan 3 benda: Penunjuk waktu, Buah berbuka, dan Pedoman hidup kita.</p>
+        <div class="hidden-object-area">
+            <!-- Decorative static items -->
+            <div style="position:absolute; left:10%; bottom:10%; font-size:8vw;">🛋️</div>
+            <div style="position:absolute; right:15%; bottom:5%; font-size:10vw;">🪴</div>
+            <div style="position:absolute; left:40%; bottom:2%; font-size:6vw;">🪑</div>
+            <!-- Clickable objects -->
+            <div class="h-obj" style="top: 15%; right: 25%;" onclick="findObject(this, 'Jam (Waktu)')">⏰</div>
+            <div class="h-obj" style="bottom: 30%; left: 30%;" onclick="findObject(this, 'Kurma (Berbuka)')">🌴</div>
+            <div class="h-obj" style="top: 40%; right: 40%;" onclick="findObject(this, 'Al-Quran (Pedoman)')">📖</div>
+        </div>
+        <p id="m2-status" style="margin-top: 1vw; font-weight: bold; color: var(--teal); background: white;">Ditemukan: 0/3</p>
+    </div>
+
+    <!-- SLIDE 6: MISI 3 (Susun Jalur) -->
+    <div id="slide-6" class="slide" style="background: var(--bg-day);">
+        <h2>Misi 3: Susun Jalur Puasa 🛤️</h2>
+        <p>Klik kartu secara berurutan dari pagi hingga malam!</p>
+        <div class="grid-container" id="m3-container">
+            <div class="card" onclick="checkOrder(this, 3)">Menyiapkan hidangan berbuka (Sore)</div>
+            <div class="card" onclick="checkOrder(this, 1)">Makan Sahur (Sebelum Subuh)</div>
+            <div class="card" onclick="checkOrder(this, 4)">Berbuka Puasa (Magrib)</div>
+            <div class="card" onclick="checkOrder(this, 2)">Menahan lapar & haus (Siang)</div>
+        </div>
+        <div style="display:flex; gap: 1vw; margin-top:2vw;" id="m3-slots">
+            <div class="portal" style="border: 2px solid white; height: 5vw; width:15vw;">1</div>
+            <div class="portal" style="border: 2px solid white; height: 5vw; width:15vw;">2</div>
+            <div class="portal" style="border: 2px solid white; height: 5vw; width:15vw;">3</div>
+            <div class="portal" style="border: 2px solid white; height: 5vw; width:15vw;">4</div>
+        </div>
+    </div>
+
+    <!-- SLIDE 7: MISI 4 (Jalan Pintar) -->
+    <div id="slide-7" class="slide" style="background: var(--bg-day);">
+        <h2>Misi 4: Pilihan Bijak 🤔</h2>
+        <p>Lumi: "Aku tidak sengaja minum air karena lupa sedang puasa. Apa yang harus aku lakukan?"</p>
+        <div style="display: flex; flex-direction: column; gap: 1vw; width: 60%;">
+            <button class="btn" onclick="showModal('Kurang Tepat', 'Kalau lupa, tidak apa-apa! Jangan malah sengaja makan lagi ya.', 'error')">A. Berhenti puasa dan makan sepuasnya</button>
+            <button class="btn btn-primary" onclick="completeMission(4, 'Tepat Sekali! Menurut ajaran agama, orang yang lupa makan/minum bisa langsung melanjutkan puasanya.', 'slide-8')">B. Berhenti minum dan melanjutkan puasa</button>
+            <button class="btn" onclick="showModal('Kurang Tepat', 'Kamu tidak perlu menangis seharian. Lupa itu manusiawi, cukup lanjutkan puasa.', 'error')">C. Menangis seharian karena merasa batal</button>
+        </div>
+    </div>
+
+    <!-- SLIDE 8: MISI 5 (Pahlawan Kebaikan) -->
+    <div id="slide-8" class="slide" style="background: var(--bg-dusk);">
+        <h2>Misi 5: Pahlawan Kebaikan 🦸</h2>
+        <p>Pasangkan Aksi (Kiri) dengan Situasi yang tepat (Kanan)! Klik Aksi, lalu klik Situasi.</p>
+        <div style="display: flex; gap: 4vw; width: 80%;">
+            <div style="flex: 1; display:flex; flex-direction:column; gap:1vw;">
+                <div class="card" style="width:100%;" onclick="selectM5Aksi(this, 'A')">Merapikan mainan</div>
+                <div class="card" style="width:100%;" onclick="selectM5Aksi(this, 'B')">Menahan marah</div>
+            </div>
+            <div style="flex: 1; display:flex; flex-direction:column; gap:1vw;">
+                <div class="portal p-merah" style="width:100%; height:auto; padding:1vw;" onclick="receiveM5(this, 'B')">Adik mematahkan pensilmu secara tidak sengaja</div>
+                <div class="portal p-hijau" style="width:100%; height:auto; padding:1vw;" onclick="receiveM5(this, 'A')">Kamar berantakan setelah bermain</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 9: MISI 6 (Berbagi) -->
+    <div id="slide-9" class="slide" style="background: var(--bg-dusk);">
+        <h2>Misi 6: Berbagi Kebahagiaan 🎁</h2>
+        <p>Klik paket bingkisan, lalu klik rumah tetangga untuk membagikannya secara adil!</p>
+        <div style="display: flex; gap: 2vw; margin-bottom: 2vw;" id="m6-packages">
+            <div class="card" onclick="selectPkg(this)">🎁 Paket 1</div>
+            <div class="card" onclick="selectPkg(this)">🎁 Paket 2</div>
+            <div class="card" onclick="selectPkg(this)">🎁 Paket 3</div>
+        </div>
+        <div style="display: flex; gap: 4vw;">
+            <div class="portal p-biru" style="height: 10vw; flex-direction:column;" onclick="dropPkg(this)">🏠 Tetangga A<span class="cnt">0/1</span></div>
+            <div class="portal p-biru" style="height: 10vw; flex-direction:column;" onclick="dropPkg(this)">🏠 Tetangga B<span class="cnt">0/1</span></div>
+            <div class="portal p-biru" style="height: 10vw; flex-direction:column;" onclick="dropPkg(this)">🏠 Tetangga C<span class="cnt">0/1</span></div>
+        </div>
+    </div>
+
+    <!-- SLIDE 10: MISI 7 & 8 -->
+    <div id="slide-10" class="slide" style="background: var(--bg-night);">
+        <h2 style="font-size: 2vw;">Misi Malam Ramadan ✨</h2>
+        <div class="split-screen">
+            <!-- Misi 7 -->
+            <div class="half">
+                <h3 style="color:var(--teal);">Misi 7: Lentera Ilmu</h3>
+                <p style="font-size: 1vw;">Pilih kebiasaan baik setelah Tarawih:</p>
+                <div class="card" style="width:90%; padding:0.5vw; margin-bottom:0.5vw;" onclick="this.style.background='var(--gold)'; checkM78()">📖 Membaca Al-Qur'an (Tadarus)</div>
+                <div class="card" style="width:90%; padding:0.5vw; margin-bottom:0.5vw;" onclick="showModal('Kurang Tepat', 'Main petasan berbahaya dan mengganggu tetangga yang istirahat/ibadah.', 'error')">🧨 Bermain petasan</div>
+                <div class="card" style="width:90%; padding:0.5vw;" onclick="this.style.background='var(--gold)'; checkM78()">📚 Membaca buku PAI</div>
+            </div>
+            <!-- Misi 8 -->
+            <div class="half">
+                <h3 style="color:var(--teal);">Misi 8: Penjaga Lisan</h3>
+                <p style="font-size: 1vw;">Temanmu salah menjawab soal. Apa ucapan yang baik?</p>
+                <div class="card" style="width:90%; padding:0.5vw; margin-bottom:0.5vw;" onclick="showModal('Kurang Tepat', 'Ucapan ini bisa menyakiti hati temanmu.', 'error')">🗣️ "Hahaha! Jawabanmu salah sekali!"</div>
+                <div class="card" style="width:90%; padding:0.5vw;" onclick="this.style.background='var(--gold)'; checkM78()">🗣️ "Tidak apa-apa, yuk kita cari jawabannya bersama."</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 11: FEEDBACK -->
+    <div id="slide-11" class="slide" style="background: var(--bg-day);">
+        <h2>Pusat Refleksi Ramadan 📜</h2>
+        <div style="background: rgba(255,255,255,0.9); padding: 2vw; border-radius: 20px; width: 70%; border: 4px solid var(--turquoise);">
+            <h3 style="color: var(--royal-blue); font-size: 2vw;">Bintang Terkumpul: <span id="final-stars">0</span>/8 ⭐</h3>
+            <ul style="text-align: left; font-size: 1.5vw; color: var(--teal); font-weight: bold;">
+                <li>Puasa bukan hanya menahan lapar, tapi juga menahan lisan.</li>
+                <li>Jika lupa makan/minum, puasa tetap sah dan dilanjutkan.</li>
+                <li>Ramadan adalah bulan berbagi dan memperbanyak amal baik.</li>
+            </ul>
+        </div>
+        <div style="margin-top: 2vw;">
+            <button class="btn" onclick="nav('slide-3')">Kembali ke Peta</button>
+            <button class="btn btn-primary" onclick="nav('slide-12')">Lanjut ke Hadiah 🎁</button>
+        </div>
+    </div>
+
+    <!-- SLIDE 12: REWARD -->
+    <div id="slide-12" class="slide" style="background: var(--bg-morning);">
+        <h1 style="font-size: 5vw; text-shadow: 4px 4px 0 var(--turquoise);">RAMADAN CHAMPION!</h1>
+        <p style="background: none; font-size: 2vw; font-weight: bold; color: var(--royal-blue); box-shadow: none;">Selamat! Kamu telah menyelesaikan perjalanan Ramadan dengan sangat baik.</p>
+        
+        <div class="badge-container">
+            <div class="badge" title="Sahabat Kebaikan">🤝</div>
+            <div class="badge" title="Penjaga Akhlak">🛡️</div>
+            <div class="badge" title="Bintang Pengetahuan">⭐</div>
+        </div>
+
+        <div style="margin-top: 3vw; display: flex; gap: 2vw;">
+            <div style="font-size: 8vw; animation: sway 2s infinite;">👦</div>
+            <div style="font-size: 8vw; animation: float 3s infinite;">🕌</div>
+            <div style="font-size: 8vw; animation: sway 2.5s infinite;">👧</div>
+        </div>
+
+        <button class="btn" style="position:absolute; bottom: 2vw;" onclick="location.reload()">🔄 MAIN LAGI</button>
+    </div>
+
+    <!-- Modal Overlay -->
+    <div id="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-title" id="modal-title">Judul</div>
+            <div class="modal-text" id="modal-text">Pesan teks di sini.</div>
+            <button class="btn btn-primary" onclick="closeModal()" id="modal-btn">Oke</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let stars = 0;
+    let completedMissions = [];
+
+    function updateStars(num) {
+        if(!completedMissions.includes(num)) {
+            stars++;
+            completedMissions.push(num);
+            document.getElementById('star-count').innerText = stars;
+            document.getElementById('final-stars').innerText = stars;
+            
+            // Unlock next checkpoint
+            if(num === 1) document.getElementById('cp-2').classList.remove('locked');
+            if(num === 3) document.getElementById('cp-3').classList.remove('locked');
+            if(num === 4) document.getElementById('cp-4').classList.remove('locked');
+            if(num === 6) document.getElementById('cp-5').classList.remove('locked');
+        }
+    }
+
+    function nav(slideId) {
+        document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+        document.getElementById(slideId).classList.add('active');
+        
+        if(slideId === 'slide-1') document.getElementById('top-bar').style.display = 'none';
+        else document.getElementById('top-bar').style.display = 'flex';
+    }
+
+    function showModal(title, text, type, callback) {
+        document.getElementById('modal-title').innerText = title;
+        document.getElementById('modal-text').innerText = text;
+        document.getElementById('modal-overlay').style.display = 'flex';
+        
+        let box = document.querySelector('.modal-box');
+        if(type === 'error') box.style.borderColor = 'tomato';
+        else box.style.borderColor = 'var(--gold)';
+
+        document.getElementById('modal-btn').onclick = function() {
+            closeModal();
+            if(callback) callback();
+        };
+    }
+
+    function closeModal() {
+        document.getElementById('modal-overlay').style.display = 'none';
+    }
+
+    function completeMission(missionNum, msg, nextSlide) {
+        updateStars(missionNum);
+        showModal('Misi Selesai! ⭐', msg, 'success', () => nav(nextSlide));
+    }
+
+    // --- MINI GAMES LOGIC --- //
+    
+    // Tutorial
+    let activeCard = null;
+    let activeCardType = null;
+    function selectCard(elem, type) {
+        document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+        elem.classList.add('selected');
+        activeCard = elem;
+        activeCardType = type;
+    }
+    function receiveCard(type) {
+        if(activeCardType === type) {
+            activeCard.style.display = 'none';
+            showModal('Hebat!', 'Kamu berhasil meletakkan kartu di tempat yang benar.', 'success');
+        }
+    }
+
+    // Misi 1 (Klasifikasi)
+    let m1Card = null;
+    let m1Target = null;
+    let m1Count = 0;
+    function selectCardM1(elem, target) {
+        if(elem.classList.contains('disabled')) return;
+        document.querySelectorAll('#m1-cards .card').forEach(c => c.classList.remove('selected'));
+        elem.classList.add('selected');
+        m1Card = elem;
+        m1Target = target;
+    }
+    function checkMisi1(portalType) {
+        if(!m1Card) return showModal('Pilih Kartu', 'Klik kartu terlebih dahulu sebelum memilih portal.', 'error');
+        if(m1Target === portalType) {
+            m1Card.classList.add('disabled');
+            m1Card.classList.remove('selected');
+            m1Card.style.background = 'var(--soft-mint)';
+            m1Count++;
+            m1Card = null;
+            if(m1Count === 4) completeMission(1, 'Luar biasa! Kamu bisa membedakan mana yang membatalkan puasa dan mana yang tidak.', 'slide-5');
+        } else {
+            showModal('Kurang Tepat', 'Coba baca lagi. Jika sengaja, maka batal. Jika lupa, tidak batal.', 'error');
+        }
+    }
+
+    // Misi 2 (Hidden Object)
+    let m2Found = 0;
+    function findObject(elem, name) {
+        if(elem.classList.contains('found')) return;
+        elem.classList.add('found');
+        m2Found++;
+        document.getElementById('m2-status').innerText = `Ditemukan: ${m2Found}/3 (${name})`;
+        if(m2Found === 3) completeMission(2, 'Kerja bagus detektif! Semua benda berhasil ditemukan.', 'slide-6');
+    }
+
+    // Misi 3 (Order)
+    let m3Expected = 1;
+    function checkOrder(elem, val) {
+        if(elem.classList.contains('disabled')) return;
+        if(val === m3Expected) {
+            elem.classList.add('disabled');
+            elem.style.background = 'var(--gold)';
+            document.querySelectorAll('#m3-slots .portal')[m3Expected-1].innerText = elem.innerText;
+            m3Expected++;
+            if(m3Expected > 4) completeMission(3, 'Susunan waktu yang tepat! Sahur di pagi hari, berbuka di waktu Magrib.', 'slide-3');
+        } else {
+            showModal('Urutan Salah', 'Pikirkan alur waktunya. Apa yang dilakukan paling awal sebelum azan Subuh?', 'error');
+        }
+    }
+
+    // Misi 5 (Matching)
+    let m5Aksi = null;
+    let m5Target = null;
+    let m5Count = 0;
+    function selectM5Aksi(elem, target) {
+        if(elem.classList.contains('disabled')) return;
+        document.querySelectorAll('#slide-8 .card').forEach(c => c.classList.remove('selected'));
+        elem.classList.add('selected');
+        m5Aksi = elem;
+        m5Target = target;
+    }
+    function receiveM5(elem, type) {
+        if(!m5Aksi) return;
+        if(m5Target === type) {
+            m5Aksi.classList.add('disabled');
+            elem.classList.add('disabled');
+            elem.style.background = 'var(--gold)';
+            m5Aksi.style.background = 'var(--gold)';
+            m5Aksi = null;
+            m5Count++;
+            if(m5Count === 2) completeMission(5, 'Kamu sungguh pahlawan kebaikan di rumah!', 'slide-9');
+        } else {
+            showModal('Kurang Tepat', 'Apakah aksi itu cocok dengan situasinya?', 'error');
+        }
+    }
+
+    // Misi 6 (Berbagi)
+    let activePkg = null;
+    let m6Count = 0;
+    function selectPkg(elem) {
+        if(elem.classList.contains('disabled')) return;
+        document.querySelectorAll('#m6-packages .card').forEach(c => c.classList.remove('selected'));
+        elem.classList.add('selected');
+        activePkg = elem;
+    }
+    function dropPkg(elem) {
+        if(!activePkg) return;
+        if(elem.querySelector('.cnt').innerText === '1/1') return showModal('Penuh', 'Tetangga ini sudah dapat. Berikan pada yang lain agar adil!', 'error');
+        
+        elem.querySelector('.cnt').innerText = '1/1';
+        elem.style.background = 'var(--teal)';
+        activePkg.classList.add('disabled');
+        activePkg.style.display = 'none';
+        activePkg = null;
+        m6Count++;
+        
+        if(m6Count === 3) completeMission(6, 'Hebat! Semua tetangga mendapat kebahagiaan yang sama.', 'slide-3');
+    }
+
+    // Misi 7 & 8 
+    let m78Count = 0;
+    function checkM78() {
+        m78Count++;
+        if(m78Count >= 3) { // 2 on left, 1 on right
+            setTimeout(() => {
+                completeMission(8, 'Kamu berhasil menyelesaikan misi Malam Ramadan! Menuntut ilmu dan menjaga lisan adalah ibadah.', 'slide-11');
+            }, 500);
+        }
+    }
+</script>
+</body>
+</html>
